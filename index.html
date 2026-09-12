@@ -2065,11 +2065,17 @@ function dockerComposeCmd(tokens){
   return `docker compose: '${sub}' is not a compose command.`;
 }
 
+let cmdCount = 0;
+
 function runCmd(raw){
   const trimmed = raw.trim();
   if(!trimmed) return;
   histIdx = -1;
   if(!cmdHistory.includes(trimmed)) cmdHistory.unshift(trimmed);
+
+  cmdCount++;
+  if(cmdCount === 1 && typeof trackTerminalUse === 'function') trackTerminalUse();
+  if(typeof trackTerminalPowerUser === 'function') trackTerminalPowerUser(cmdCount);
 
   termPrint(`<span style="color:var(--green)">student@moshell:${cwd}$</span> <span style="color:var(--text)">${escH(trimmed)}</span>`);
 
