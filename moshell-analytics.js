@@ -39,6 +39,54 @@ window.trackCta = function (label, params) {
   }
 };
 
+/* Fires once per session on the first terminal command a user types.
+   This is the actual core interaction of the product, and previously had
+   zero GA4 instrumentation — sessions could involve real, sustained use
+   of the sandbox and still register as "unengaged" if the user didn't
+   also trigger a CTA click or finish a full lesson. engagement_time_msec
+   tells GA4 directly to count this session as engaged, rather than
+   relying purely on the default dwell-time heuristic. */
+window.trackTerminalUse = function () {
+  try {
+    if (typeof gtag !== 'function') return;
+
+    const sessionKey = 'ms_ga_first_cmd_session';
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    gtag('event', 'terminal_first_command', {
+      engagement_time_msec: 1,
+    });
+
+    sessionStorage.setItem(sessionKey, '1');
+    console.log('[moshell-analytics] terminal_first_command event fired');
+  } catch (e) {
+    console.error('[moshell-analytics] trackTerminalUse failed', e);
+  }
+};
+
+/* Fires once per session at the 10th distinct command, as a signal of
+   real depth-of-use rather than a single curious command before leaving.
+   Useful as a GA4 Key Event separate from purchases — "used the product
+   seriously" is a conversion worth tracking on its own. */
+window.trackTerminalPowerUser = function (commandCount) {
+  try {
+    if (typeof gtag !== 'function') return;
+    if (commandCount !== 10) return;
+
+    const sessionKey = 'ms_ga_power_user_session';
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    gtag('event', 'terminal_power_user', {
+      engagement_time_msec: 1,
+    });
+
+    sessionStorage.setItem(sessionKey, '1');
+    console.log('[moshell-analytics] terminal_power_user event fired');
+  } catch (e) {
+    console.error('[moshell-analytics] trackTerminalPowerUser failed', e);
+  }
+};
+
 window.trackLessonComplete = function (lessonId) {
   try {
     if (typeof gtag !== 'function') {
